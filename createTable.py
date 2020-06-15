@@ -3,11 +3,11 @@ from numpy import *
 import datetime as dt
 
 ##reads in list of match results downloaded from https://www.football-data.co.uk/englandm.php
-def readResults(results):
-    return read_csv(results)[['Date', 'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG']]
-      
-##copy and paste location of downloaded results table here
-results = readResults('C:/Users/peter/PL program/18-19 results.csv')
+##use results = readResults('csv file path')
+
+def readResults(raw_results):
+    return read_csv(raw_results)[['Date', 'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG']]
+
 
 ##makes list of teams involved in matches from results data
 def teamList(results):
@@ -20,9 +20,11 @@ def teamList(results):
 ##creates PL table dataframe from results data up to chosen date
 ##Input date as string 'dd/mm/yyyy'
 def createTable(results, date):
-    table = DataFrame(columns=['Team','W','L','D','Scored','Conceded','Points'],
-             data = transpose([teamList(results),[0]*len(teamList(results)),
-                               [0]*len(teamList(results)),[0]*len(teamList(results)),[0]*len(teamList(results)),[0]*len(teamList(results)),[0]*len(teamList(results))]))
+    table = DataFrame(columns=['Team','Played','W','L','D','Scored','Conceded','GD','Points'],
+             data = transpose([teamList(results),[0]*len(teamList(results)),[0]*len(teamList(results)),
+                               [0]*len(teamList(results)),[0]*len(teamList(results)),
+                               [0]*len(teamList(results)),[0]*len(teamList(results)),
+                               [0]*len(teamList(results)),[0]*len(teamList(results))]))
     table = table.set_index('Team').astype(int64)
     date = dt.datetime.strptime(date,'%d/%m/%Y')
     for i in range(0,len(results.index)):
@@ -42,10 +44,7 @@ def createTable(results, date):
                 table.at[results['AwayTeam'][i],'D'] = table.at[results['AwayTeam'][i],'D'] + 1
     for team in teamList(results):
         table.at[team,'Points'] = 3*table.at[team,'W'] + table.at[team,'D']
+        table.at[team,'Played'] = table.at[team,'D'] + table.at[team,'W'] + table.at[team,'L']
+        table.at[team,'GD'] = table.at[team,'Scored'] - table.at[team,'Conceded']
     table = table.sort_values(by='Points', ascending=False)
     return table
-
-
-print(createTable(results,'12/1/2019'))
-
-
