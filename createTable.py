@@ -46,5 +46,5 @@ def createTable(results, date):
         table.at[team,'Points'] = 3*table.at[team,'W'] + table.at[team,'D']
         table.at[team,'Played'] = table.at[team,'D'] + table.at[team,'W'] + table.at[team,'L']
         table.at[team,'GD'] = table.at[team,'Scored'] - table.at[team,'Conceded']
-    table = table.sort_values(by='Points', ascending=False)
+    table = table.sort_values(by='Points', ascending=False).reset_index()
     return table
