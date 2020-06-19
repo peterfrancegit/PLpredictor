@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 ##Input list of match results and returns df recording the point difference
 ##before the match and the respective outcome. Also calculates the average
-##difference per game played, and rounds this to 2dp.
+##difference per game played, and rounds this to 2dp
 def pointsToOutcome(results):
     headings = ['PointDiff','PointDiffPerGame','PointDiffRounded','Outcome']
     df = DataFrame(columns=headings)
@@ -33,9 +33,26 @@ def pointsToOutcome(results):
             df.loc[rowInd] = [diff, avDiff, rounded, 'Win']
     return df
 
-##Plots stacked bar chart of match outcomes for each average point
-##difference(rounded).
+##Plots stacked bar chart of match outcomes for each point difference
 def plotPointsToOutcome(results):
+    headings = ['PointDiff','Win','Draw','Loss']
+    df = DataFrame(columns=headings)
+    for row in pointsToOutcome(results).iterrows():
+        rowInd = row[0]
+        row = row[1]
+        df.loc[rowInd] = [row['PointDiff'], 0, 0, 0]
+        df.loc[rowInd][row['Outcome']] = 1
+    df = df.groupby(['PointDiff']).sum()
+    df.plot.bar(stacked=True)
+    plt.title('Match outcomes for higher ranked team')
+    plt.xlabel('Point Difference')
+    plt.ylabel('Number of Matches')
+    plt.show()
+    return
+
+##Plots stacked bar chart of match outcomes for each average point
+##difference(rounded)
+def plotPointsPerMatchToOutcome(results):
     headings = ['PointDiffRounded','Win','Draw','Loss']
     df = DataFrame(columns=headings)
     for row in pointsToOutcome(results).iterrows():
@@ -45,10 +62,8 @@ def plotPointsToOutcome(results):
         df.loc[rowInd][row['Outcome']] = 1
     df = df.groupby(['PointDiffRounded']).sum()
     df.plot.bar(stacked=True)
+    plt.title('Match outcomes for higher ranked team')
     plt.xlabel('Point Difference per Match')
     plt.ylabel('Number of Matches')
     plt.show()
     return
-
-results = readResults('C:/Users/peter/PL program/18-19 results.csv')
-print(plotPointsToOutcome(results))
