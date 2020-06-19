@@ -25,7 +25,7 @@ def createTable(results, date):
                                [0]*len(teamList(results)),[0]*len(teamList(results)),
                                [0]*len(teamList(results)),[0]*len(teamList(results)),
                                [0]*len(teamList(results)),[0]*len(teamList(results))]))
-    table = table.set_index('Team').astype(int64)
+    table = table.set_index('Team').astype(int)
     date = dt.datetime.strptime(date,'%d/%m/%Y')
     for i in range(0,len(results.index)):
         if dt.datetime.strptime(results.iloc[i]['Date'],'%d/%m/%Y') < date:
