@@ -1,33 +1,54 @@
 from createTable import *
 import matplotlib.pyplot as plt
 
-def rankResult(results):
-    headings=['PointDiff','PointDiffPerGame','PointDiffRounded','Result']
-    numbers=[]
-    for row in results.loc[50:].iterrows():
+##Input list of match results and returns df recording the point difference
+##before the match and the respective outcome. Also calculates the average
+##difference per game played, and rounds this to 2dp.
+def pointsToOutcome(results):
+    headings = ['PointDiff','PointDiffPerGame','PointDiffRounded','Outcome']
+    df = DataFrame(columns=headings)
+    START = 20
+    ROUND_TO = 0.05
+    date = 0
+    for row in results.iloc[START:].iterrows():
+        rowInd = row[0]
         row = row[1]
-        table = createTable(results,row['Date'])
-        homeInd = table[table['Team']==row['HomeTeam']].index
-        awayInd = table[table['Team']==row['AwayTeam']].index
-        highInd = max(homeInd, awayInd)[0]
-        lowInd = min(homeInd, awayInd)[0]
-        diff = table.iloc[lowInd]['Points'] - table.iloc[highInd]['Points']
-        avDiff = 2 * diff/(table.iloc[lowInd]['Played'] + table.iloc[highInd]['Played'])
+        if row['Date'] != date:
+            date = row['Date']
+            table = createTable(results,date)
+        homeInd = table[table['Team']==row['HomeTeam']].index[0]
+        awayInd = table[table['Team']==row['AwayTeam']].index[0]
+        highInd = max([homeInd, awayInd])
+        lowInd = min([homeInd, awayInd])
+        diff = table.at[lowInd,'Points'] - table.at[highInd,'Points']
+        avDiff = 2 * diff/(table.at[lowInd,'Played'] + table.at[highInd,'Played'])
+        rounded = round(round(avDiff / ROUND_TO) * ROUND_TO, 2)
         if row['FTHG'] == row['FTAG']:
-            numbers.append([diff, avDiff, round(avDiff, 2), 'Draw'])
+            df.loc[rowInd] = [diff, avDiff, rounded, 'Draw']
         elif (row['FTHG'] < row['FTAG']) & (homeInd == lowInd):
-            numbers.append([diff, avDiff, round(avDiff, 2), 'Win'])
+            df.loc[rowInd] = [diff, avDiff, rounded, 'Loss']
         elif (row['FTHG'] > row['FTAG']) & (homeInd == highInd):
-            numbers.append([diff, avDiff, round(avDiff, 2), 'Win'])
+            df.loc[rowInd] = [diff, avDiff, rounded, 'Loss']
         else:
-            numbers.append([diff, avDiff, round(avDiff, 2), 'Loss'])
-    return DataFrame(columns=headings,data=numbers)
+            df.loc[rowInd] = [diff, avDiff, rounded, 'Win']
+    return df
 
-def plotRankResult(results):
-    plot = rankResult(results).plot(x='PointDiffRounded',y='Result',kind='barh')
+##Plots stacked bar chart of match outcomes for each average point
+##difference(rounded).
+def plotPointsToOutcome(results):
+    headings = ['PointDiffRounded','Win','Draw','Loss']
+    df = DataFrame(columns=headings)
+    for row in pointsToOutcome(results).iterrows():
+        rowInd = row[0]
+        row = row[1]
+        df.loc[rowInd] = [row['PointDiffRounded'], 0, 0, 0]
+        df.loc[rowInd][row['Outcome']] = 1
+    df = df.groupby(['PointDiffRounded']).sum()
+    df.plot.bar(stacked=True)
+    plt.xlabel('Point Difference per Match')
+    plt.ylabel('Number of Matches')
     plt.show()
     return
 
 results = readResults('C:/Users/peter/PL program/18-19 results.csv')
-plotRankResult(results)
-print(plotRankResult(results))
+print(plotPointsToOutcome(results))
