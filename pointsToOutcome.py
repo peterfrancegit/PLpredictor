@@ -67,6 +67,3 @@ def plotPointsPerMatchToOutcome(results):
     plt.ylabel('Number of Matches')
     plt.show()
     return
-
-results = readResults('C:/Users/peter/PL program/17-18 results.csv')
-plotPointsToOutcome(results)
